@@ -1,39 +1,66 @@
 <!DOCTYPE html>
-<html lang="te">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Telugu RTS Transliteration</title>
-<style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    textarea { width: 100%; height: 150px; font-size: 18px; padding: 10px; }
-    h3 { color: #333; }
-</style>
+    <meta charset="UTF-8">
+    <title>RTS Telugu Transliteration</title>
+    <!-- Load Aksharamukha from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/aksharamukha@latest/dist/index.global.js"></script>
+    <style>
+        #teluguBox {
+            width: 100%;
+            max-width: 500px;
+            height: 150px;
+            font-size: 1.2rem;
+            padding: 10px;
+            font-family: 'Gautami', 'Telugu Sangam MN', sans-serif;
+        }
+    </style>
 </head>
 <body>
 
-<h3>Type in Telugu (RTS)</h3>
-<textarea id="teluguInput" placeholder="Type here... e.g., namaskaaramu"></textarea>
+    <h2>Type in RTS (e.g., amma, rAmudu)</h2>
+    <p>Press <b>Space</b> or <b>Enter</b> to convert the word.</p>
+    <textarea id="teluguBox" placeholder="Type here..."></textarea>
 
-<script>
-    // Simplified Mapping Table for demonstration
-    const rtsMap = {
-        'A': 'ఆ', 'a': 'అ', 'I': 'ఈ', 'i': 'ఇ', 'U': 'ఊ', 'u': 'ఉ',
-        'E': 'ఏ', 'e': 'ఎ', 'AI': 'ఐ', 'ai': 'ఐ', 'O': 'ఓ', 'o': 'ఒ', 'AU': 'ఔ', 'au': 'ఔ',
-        'k': 'క', 'g': 'గ', 'ch': 'చ', 'j': 'జ', 'T': 'ట', 'D': 'డ',
-        't': 'త', 'd': 'ద', 'p': 'ప', 'b': 'బ', 'm': 'మ', 'y': 'య',
-        'r': 'ర', 'l': 'ల', 'v': 'వ', 'S': 'శ', 's': 'స', 'h': 'హ',
-        'M': 'ం', 'N': 'ణ'
-    };
+    <script>
+        let am; // Aksharamukha instance
 
-    const inputArea = document.getElementById('teluguInput');
+        // Initialize Aksharamukha
+        async function init() {
+            am = await Aksharamukha.new();
+        }
+        init();
 
-    inputArea.addEventListener('input', function(e) {
-        let text = e.target.value;
-        // Simple conversion logic: This is a placeholder for a full library
-        // A complete implementation requires a robust mapping engine
-        console.log("Input:", text);
-        // For a full system, you would integrate a library like IndicTrans
-    });
-</script>
+        const textBox = document.getElementById('teluguBox');
+
+        textBox.addEventListener('keydown', async (e) => {
+            // Trigger on Space (32) or Enter (13)
+            if (e.key === ' ' || e.key === 'Enter') {
+                const text = textBox.value;
+                const cursor = textBox.selectionStart;
+                
+                // Get the text before the cursor to find the last word
+                const beforeCursor = text.substring(0, cursor);
+                const words = beforeCursor.split(/(\s+)/); // Keep whitespace
+                const lastWord = words[words.length - 1];
+
+                if (lastWord.trim().length > 0 && am) {
+                    // Convert only the last word from RTS to Telugu
+                    // Source: 'Rice' for RTS, Target: 'Telugu'
+                    const converted = await am.process('Rice', 'Telugu', lastWord);
+                    
+                    // Reconstruct the text with the converted word
+                    const newBefore = words.slice(0, -1).join('') + converted;
+                    const afterCursor = text.substring(cursor);
+                    
+                    textBox.value = newBefore + afterCursor;
+                    
+                    // Reset cursor position after conversion
+                    const newCursorPos = newBefore.length;
+                    textBox.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
