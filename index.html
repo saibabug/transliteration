@@ -3,47 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>Telugu RTS Transliteration</title>
-    <!-- Pure JS Library - No Pyodide/Python errors -->
-    <script src="https://cdn.jsdelivr.net"></script>
+    <!-- Reliable CDN link for Sanscript.js -->
+    <script src="https://unpkg.com"></script>
     <style>
         #teluguBox {
             width: 100%; max-width: 600px; height: 150px;
             font-size: 1.2rem; padding: 15px;
             font-family: 'Gautami', 'Arial', sans-serif;
-            border: 2px solid #ccc; border-radius: 8px;
+            border: 2px solid #007bff; border-radius: 8px;
+            outline: none;
         }
+        .status { font-size: 0.8rem; color: #666; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <h3>Telugu RTS Typing</h3>
-    <p>Type in RTS (e.g., <b>amma</b>, <b>rAmudu</b>) and press <b>Space</b> or <b>Enter</b>.</p>
-    <textarea id="teluguBox" placeholder="Type here..."></textarea>
+    <div id="status" class="status">Loading library...</div>
+    <textarea id="teluguBox" placeholder="Type 'amma' and press space..."></textarea>
 
     <script>
         const textBox = document.getElementById('teluguBox');
+        const status = document.getElementById('status');
+
+        // Check if Sanscript loaded correctly
+        window.onload = () => {
+            if (typeof Sanscript !== 'undefined') {
+                status.innerText = "Keyboard Ready (RTS Mode)";
+                status.style.color = "green";
+            } else {
+                status.innerText = "Error: Library failed to load. Please refresh.";
+                status.style.color = "red";
+            }
+        };
 
         textBox.addEventListener('keydown', (e) => {
+            // Trigger on Space or Enter
             if (e.key === ' ' || e.key === 'Enter') {
+                if (typeof Sanscript === 'undefined') return;
+
                 const cursor = textBox.selectionStart;
                 const text = textBox.value;
                 
-                // Get the text before the cursor
+                // Extract the word immediately before the cursor
                 const beforeCursor = text.substring(0, cursor);
-                const words = beforeCursor.split(/(\s+)/);
-                const lastWord = words[words.length - 1];
+                const parts = beforeCursor.split(/(\s+)/);
+                const lastWord = parts[parts.length - 1];
 
                 if (lastWord.trim().length > 0) {
-                    // Convert last word from RTS (using ITRANS logic) to Telugu
-                    // Note: 'itrans' is the closest standard to RTS in Sanscript
+                    // RTS is nearly identical to 'itrans' in this library
+                    // Using 'itrans' for standard RTS behavior
                     const converted = Sanscript.t(lastWord, 'itrans', 'telugu');
                     
-                    const newBefore = words.slice(0, -1).join('') + converted;
+                    const newBefore = parts.slice(0, -1).join('') + converted;
                     const afterCursor = text.substring(cursor);
                     
                     textBox.value = newBefore + afterCursor;
                     
-                    // Maintain cursor position
+                    // Keep the cursor in the correct spot
                     const newPos = newBefore.length;
                     textBox.setSelectionRange(newPos, newPos);
                 }
