@@ -2,62 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RTS Telugu Transliteration</title>
-    <!-- Load Aksharamukha from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/aksharamukha@latest/dist/index.global.js"></script>
+    <title>Telugu RTS Transliteration</title>
+    <!-- Pure JS Library - No Pyodide/Python errors -->
+    <script src="https://cdn.jsdelivr.net"></script>
     <style>
         #teluguBox {
-            width: 100%;
-            max-width: 500px;
-            height: 150px;
-            font-size: 1.2rem;
-            padding: 10px;
-            font-family: 'Gautami', 'Telugu Sangam MN', sans-serif;
+            width: 100%; max-width: 600px; height: 150px;
+            font-size: 1.2rem; padding: 15px;
+            font-family: 'Gautami', 'Arial', sans-serif;
+            border: 2px solid #ccc; border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Type in RTS (e.g., amma, rAmudu)</h2>
-    <p>Press <b>Space</b> or <b>Enter</b> to convert the word.</p>
+    <h3>Telugu RTS Typing</h3>
+    <p>Type in RTS (e.g., <b>amma</b>, <b>rAmudu</b>) and press <b>Space</b> or <b>Enter</b>.</p>
     <textarea id="teluguBox" placeholder="Type here..."></textarea>
 
     <script>
-        let am; // Aksharamukha instance
-
-        // Initialize Aksharamukha
-        async function init() {
-            am = await Aksharamukha.new();
-        }
-        init();
-
         const textBox = document.getElementById('teluguBox');
 
-        textBox.addEventListener('keydown', async (e) => {
-            // Trigger on Space (32) or Enter (13)
+        textBox.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'Enter') {
-                const text = textBox.value;
                 const cursor = textBox.selectionStart;
+                const text = textBox.value;
                 
-                // Get the text before the cursor to find the last word
+                // Get the text before the cursor
                 const beforeCursor = text.substring(0, cursor);
-                const words = beforeCursor.split(/(\s+)/); // Keep whitespace
+                const words = beforeCursor.split(/(\s+)/);
                 const lastWord = words[words.length - 1];
 
-                if (lastWord.trim().length > 0 && am) {
-                    // Convert only the last word from RTS to Telugu
-                    // Source: 'Rice' for RTS, Target: 'Telugu'
-                    const converted = await am.process('Rice', 'Telugu', lastWord);
+                if (lastWord.trim().length > 0) {
+                    // Convert last word from RTS (using ITRANS logic) to Telugu
+                    // Note: 'itrans' is the closest standard to RTS in Sanscript
+                    const converted = Sanscript.t(lastWord, 'itrans', 'telugu');
                     
-                    // Reconstruct the text with the converted word
                     const newBefore = words.slice(0, -1).join('') + converted;
                     const afterCursor = text.substring(cursor);
                     
                     textBox.value = newBefore + afterCursor;
                     
-                    // Reset cursor position after conversion
-                    const newCursorPos = newBefore.length;
-                    textBox.setSelectionRange(newCursorPos, newCursorPos);
+                    // Maintain cursor position
+                    const newPos = newBefore.length;
+                    textBox.setSelectionRange(newPos, newPos);
                 }
             }
         });
